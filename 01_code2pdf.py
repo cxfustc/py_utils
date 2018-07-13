@@ -5,21 +5,22 @@ import re
 import sys
 
 re_hiden = re.compile (r"^\.")
-re_src = re.compile (r"\.c$|\.h$|\.cc$|\.cpp$|\.hh$|\.hpp$|\.py$|\.pl$|\.R$|\.r$|\.f$")
+re_src = re.compile (r"\.c$|\.h$|\.cc$|\.cpp$|\.hh$|\.hpp$|\.py$|\.pl$|\.R$|\.r$|\.f$|\.vim$|\.css$")
 
 def find_code_file (directory):
 	for f in os.listdir(directory):
 		if (re_hiden.search(f)):
 			continue
-		if (os.path.isdir(f)):
-			new_dir = directory + "/" + f
-			find_code_file (new_dir)
+		path = directory + "/" + f
+		if (os.path.isdir(path)):
+			find_code_file (path)
 			continue
 		if (not re_src.search(f)):
 			continue
 		cur_out_dir = out_dir + '/' + directory
 		if (not os.path.exists(cur_out_dir)):
 			os.makedirs (cur_out_dir)
+
 		cmd = 'vim -c":TOhtml" -c ":wq! ' + cur_out_dir + '/' + f + '.html" -c ":q" ' + directory + '/' + f
 		os.system (cmd)
 		cmd = 'wkhtmltopdf ' + cur_out_dir + '/' + f + '.html ' + cur_out_dir + '/' + f + '.pdf'
