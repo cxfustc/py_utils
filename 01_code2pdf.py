@@ -17,11 +17,14 @@ def find_code_file (directory):
 			continue
 		if (not re_src.search(f)):
 			continue
-		cmd = 'vim -c":TOhtml" -c ":wq! ' + out_dir + '/' + directory + '/' + f + '.html" -c ":q" ' + directory + '/' + f
+		cur_out_dir = out_dir + '/' + directory
+		if (not os.path.exists(cur_out_dir)):
+			os.makedirs (cur_out_dir)
+		cmd = 'vim -c":TOhtml" -c ":wq! ' + cur_out_dir + '/' + f + '.html" -c ":q" ' + directory + '/' + f
 		os.system (cmd)
-		cmd = 'wkhtmltopdf ' + out_dir + '/' + directory + '/' + f + '.html ' + out_dir + '/' + directory + '/' + f + '.pdf'
+		cmd = 'wkhtmltopdf ' + cur_out_dir + '/' + f + '.html ' + cur_out_dir + '/' + f + '.pdf'
 		os.system (cmd)
-		cmd = 'rm -f ' + out_dir + '/' + directory + '/' + f + '.html'
+		cmd = 'rm -f ' + cur_out_dir + '/' + f + '.html'
 		os.system (cmd)
 
 if (len(sys.argv) < 3):
