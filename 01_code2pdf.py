@@ -32,11 +32,8 @@ for root,dirs,files in os.walk('.'):
       os.makedirs (cur_out_dir)
 
     cmd = 'vim -c":TOhtml" -c ":wq! ' + cur_out_dir + '/' + f + '.html" -c ":q" ' + path
-    print (cmd)
-#    os.system (cmd)
+    os.system (cmd)
     cmd = 'wkhtmltopdf ' + cur_out_dir + '/' + f + '.html ' + cur_out_dir + '/' + f + '.pdf'
-    print (cmd)
-#    os.system (cmd)
+    os.system (cmd)
     cmd = 'rm -f ' + cur_out_dir + '/' + f + '.html'
-    print (cmd)
-#    os.system (cmd)
+    os.system (cmd)
