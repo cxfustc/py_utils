@@ -27,13 +27,16 @@ for root,dirs,files in os.walk('.'):
     if (not re_src.search(f)):
       continue
     path = root + "/" + f
-    cur_out_dir = code_dir + "/" + root
+    cur_out_dir = out_dir + "/" + root
     if (not os.path.exists(cur_out_dir)):
       os.makedirs (cur_out_dir)
 
     cmd = 'vim -c":TOhtml" -c ":wq! ' + cur_out_dir + '/' + f + '.html" -c ":q" ' + path
-    os.system (cmd)
+    print (cmd)
+#    os.system (cmd)
     cmd = 'wkhtmltopdf ' + cur_out_dir + '/' + f + '.html ' + cur_out_dir + '/' + f + '.pdf'
-    os.system (cmd)
+    print (cmd)
+#    os.system (cmd)
     cmd = 'rm -f ' + cur_out_dir + '/' + f + '.html'
-    os.system (cmd)
+    print (cmd)
+#    os.system (cmd)
