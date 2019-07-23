@@ -1,0 +1,15 @@
+src/main/java/org/broadinstitute/hellbender/engine	AssemblyRegionWalker.java
+src/main/java/org/broadinstitute/hellbender/engine	GATKTool.java
+src/main/java/org/broadinstitute/hellbender/engine	MultiIntervalLocalReadShard.java
+src/main/java/org/broadinstitute/hellbender	Main.java
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller	AssemblyResultSet.java
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller	PairHMMLikelihoodCalculationEngine.java
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller	PairHMMNativeArgumentCollection.java
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller	RandomLikelihoodCalculationEngine.java
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller	ReadLikelihoodCalculationEngine.java
+src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect	M2ArgumentCollection.java
+src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect	Mutect2Engine.java
+src/main/java/org/broadinstitute/hellbender/utils	GenotypeUtils.java
+src/main/java/org/broadinstitute/hellbender/utils/pairhmm	PairHMM.java
+src/main/java/org/broadinstitute/hellbender/utils/pairhmm	VectorLoglessPairHMM.java
+src/main/java/org/broadinstitute/hellbender/utils/variant/writers	GVCFWriter.java

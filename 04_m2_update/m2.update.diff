@@ -1,0 +1,339 @@
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/engine/AssemblyRegionWalker.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/engine/AssemblyRegionWalker.java
+147c147
+<     public List<MultiIntervalLocalReadShard> readShards;
+---
+>     private List<MultiIntervalLocalReadShard> readShards;
+174,175c174,175
+<         //final List<SimpleInterval> intervals = hasUserSuppliedIntervals() ? userIntervals : IntervalUtils.getAllIntervalsForReference(getHeaderForReads().getSequenceDictionary());
+<         //readShards = makeReadShards(intervals);
+---
+>         final List<SimpleInterval> intervals = hasUserSuppliedIntervals() ? userIntervals : IntervalUtils.getAllIntervalsForReference(getHeaderForReads().getSequenceDictionary());
+>         readShards = makeReadShards(intervals);
+251c251
+<     public void traverse() {
+---
+>     public final void traverse() {
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/engine/GATKTool.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/engine/GATKTool.java
+141c141
+<     protected ReferenceDataSource reference;
+---
+>     ReferenceDataSource reference;
+146c146
+<     public ReadsDataSource reads;
+---
+>     ReadsDataSource reads;
+151c151
+<     protected FeatureManager features;
+---
+>     FeatureManager features;
+160c160
+<     public List<SimpleInterval> userIntervals;
+---
+>     List<SimpleInterval> userIntervals;
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/engine/MultiIntervalLocalReadShard.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/engine/MultiIntervalLocalReadShard.java
+3d2
+< import htsjdk.samtools.SAMSequenceDictionary;
+33a33
+>     private final ReadsDataSource readsSource;
+35d34
+<     private ReadsDataSource readsSource;
+65,77d63
+<     public MultiIntervalLocalReadShard(final List<SimpleInterval> intervals, final int intervalPadding, final SAMSequenceDictionary sequenceDictionary) {
+<         Utils.nonNull(intervals);
+<         Utils.validateArg(intervalPadding >= 0, "intervalPadding must be >= 0");
+< 
+<         // Feed intervals through IntervalUtils.getIntervalsWithFlanks() to ensure they get sorted using
+<         // the same comparator as the paddedIntervals below.
+<         this.intervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, 0, sequenceDictionary));
+< 
+<         // This will both pad each interval and merge any intervals that are overlapping or adjacent after padding,
+<         // in addition to sorting the intervals
+<         this.paddedIntervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, intervalPadding, sequenceDictionary));
+<     }
+< 
+87,90d72
+<     }
+< 
+<     public void setReadsSource (final ReadsDataSource readsSource) {
+<         this.readsSource = readsSource;
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/Main.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/Main.java
+289,294d288
+< 				System.out.println ();
+<         System.out.println ("|=----------------------------------------------------------------------------=|");
+<         System.out.println ("|=---------------=[This beta version will expire on Jan.1 2019]=--------------=|");
+<         System.out.println ("|=----------------------------------------------------------------------------=|");
+<         System.out.println ();
+< 
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/AssemblyResultSet.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/AssemblyResultSet.java
+12d11
+< import org.broadinstitute.hellbender.utils.genotyper.ReadLikelihoods;
+16d14
+< import org.broadinstitute.hellbender.utils.read.GATKRead;
+51,58d48
+< 
+<     public Map<String,List<GATKRead>> reads;
+<     public ReadLikelihoods<Haplotype> readLikelihoods;
+<     public List<VariantContext> givenAlleles;
+<     public SimpleInterval extendedSpan;
+<     public int tid;
+<     public int regionStart;
+<     public int regionEnd;
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/PairHMMLikelihoodCalculationEngine.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/PairHMMLikelihoodCalculationEngine.java
+15d14
+< import org.broadinstitute.hellbender.utils.pairhmm.LoglessPairHMM;
+17d15
+< import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+131,148d128
+<        this (
+<                constantGCP,
+<                arguments,
+<                hmmType,
+<                log10globalReadMismappingRate,
+<                pcrErrorModel,
+<                baseQualityScoreThreshold,
+<                false
+<        );
+<     }
+< 
+<     public PairHMMLikelihoodCalculationEngine(final byte constantGCP,
+<                                               final PairHMMNativeArguments arguments,
+<                                               final PairHMM.Implementation hmmType,
+<                                               final double log10globalReadMismappingRate,
+<                                               final PCRErrorModel pcrErrorModel,
+<                                               final byte baseQualityScoreThreshold,
+<                                               final boolean onlyCPUPairHMMEngine) {
+160,165c140
+< 
+<         if (onlyCPUPairHMMEngine) {
+<             this.pairHMM = new LoglessPairHMM();
+<         } else {
+<             this.pairHMM = hmmType.makeNewHMM(arguments);
+<         }
+---
+>         this.pairHMM = hmmType.makeNewHMM(arguments);
+457,461d431
+<     }
+< 
+<     @Override
+<     public VectorLoglessPairHMM.Implementation getRunningEngineType() {
+<         return pairHMM.runningEngineType;
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/PairHMMNativeArgumentCollection.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/PairHMMNativeArgumentCollection.java
+5,6d4
+< import org.broadinstitute.hellbender.engine.AssemblyRegionWalker;
+< import org.broadinstitute.hellbender.tools.walkers.mutect.Mutect2Acc.Mutect2Acc;
+12a11,13
+>     @Argument(fullName = "native-pair-hmm-threads", doc="How many threads should a native pairHMM implementation use", optional = true)
+>     private int pairHmmNativeThreads = 4;
+> 
+19,22c20
+<         if (Mutect2Acc.pairHmmNativeThreads <= 0) {
+<             Mutect2Acc.pairHmmNativeThreads = Runtime.getRuntime().availableProcessors() / 2;
+<         }
+<         args.maxNumberOfThreads = Mutect2Acc.pairHmmNativeThreads;
+---
+>         args.maxNumberOfThreads = pairHmmNativeThreads;
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/RandomLikelihoodCalculationEngine.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/RandomLikelihoodCalculationEngine.java
+6,7d5
+< import org.broadinstitute.hellbender.utils.pairhmm.PairHMM;
+< import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+48,51d45
+<     @Override
+<     public VectorLoglessPairHMM.Implementation getRunningEngineType() {
+<         return null;
+<     }
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/ReadLikelihoodCalculationEngine.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/ReadLikelihoodCalculationEngine.java
+6d5
+< import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+51,52d49
+< 
+<     public VectorLoglessPairHMM.Implementation getRunningEngineType();
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect/M2ArgumentCollection.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect/M2ArgumentCollection.java
+49c49
+<     public String tumorSample = null;
+---
+>     protected String tumorSample = null;
+52c52
+<     public String normalSample = null;
+---
+>     protected String normalSample = null;
+Only in /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect: Mutect2Acc
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect/Mutect2Engine.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect/Mutect2Engine.java
+50c50
+<     public static final String MUTECT_VERSION = "2.1";
+---
+>     private static final String MUTECT_VERSION = "2.1";
+300c300
+<     public static List<Byte> altQuals(final ReadPileup pileup, final byte refBase, final int pcrErrorQual) {
+---
+>     private static List<Byte> altQuals(final ReadPileup pileup, final byte refBase, final int pcrErrorQual) {
+322c322
+<     public static double lnLikelihoodRatio(final int refCount, final List<Byte> altQuals) {
+---
+>     private static double lnLikelihoodRatio(final int refCount, final List<Byte> altQuals) {
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/utils/GenotypeUtils.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/utils/GenotypeUtils.java
+65c65
+<                     final int[] idxVector = vc.getGLIndicesOfAlternateAllele(a2);
+---
+>                     final int[] idxVector = vc.getGLIndecesOfAlternateAllele(a2);
+72c72
+<                     final int[] idxVector = vc.getGLIndicesOfAlternateAllele(a1);
+---
+>                     final int[] idxVector = vc.getGLIndecesOfAlternateAllele(a1);
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/utils/pairhmm/PairHMM.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/utils/pairhmm/PairHMM.java
+9d8
+< import org.broadinstitute.hellbender.tools.walkers.mutect.Mutect2Acc.Mutect2Acc;
+31,32d29
+<     public VectorLoglessPairHMM.Implementation runningEngineType;
+< 
+88,96c85,92
+<             if (Mutect2Acc.useFPGA) {
+<                 try {
+<                     final VectorLoglessPairHMM hmm = new VectorLoglessPairHMM(VectorLoglessPairHMM.Implementation.FPGA, args);
+<                     logger.info("Using the FPGA-accelerated native PairHMM implementation");
+<                     return hmm;
+<                 } catch (UserException.HardwareFeatureException e) {
+<                     logger.info("FPGA-accelerated native PairHMM implementation is not supported");
+<                 }
+<             }
+---
+>             // try {
+>             //    final VectorLoglessPairHMM hmm = new VectorLoglessPairHMM(VectorLoglessPairHMM.Implementation.FPGA, args);
+>             //    logger.info("Using the FPGA-accelerated native PairHMM implementation");
+>             //    return hmm;
+>             //}
+>             //catch ( UserException.HardwareFeatureException e ) {
+>             //    logger.info("FPGA-accelerated native PairHMM implementation is not supported");
+>             //}
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/utils/pairhmm/VectorLoglessPairHMM.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/utils/pairhmm/VectorLoglessPairHMM.java
+17d16
+< import scala.tools.cmd.gen.AnyVals;
+57,58d55
+<     private int NUM_READS_IN_BATCH = 16384;
+< 
+75d71
+<                 runningEngineType = Implementation.AVX;
+84d79
+<                 runningEngineType = Implementation.OMP;
+93d87
+<                 runningEngineType = Implementation.FPGA;
+136d129
+< 
+139,150c132,142
+< 
+<         //ReadDataHolder[] readDataArray = new ReadDataHolder[readListSize];
+<         //int idx = 0;
+<         //for (GATKRead read : processedReads) {
+<         //    readDataArray[idx] = new ReadDataHolder();
+<         //    readDataArray[idx].readBases = read.getBases();
+<         //    readDataArray[idx].readQuals = read.getBaseQualities();
+<         //    readDataArray[idx].insertionGOP = ReadUtils.getBaseInsertionQualities(read);
+<         //    readDataArray[idx].deletionGOP = ReadUtils.getBaseDeletionQualities(read);
+<         //    readDataArray[idx].overallGCP = gcp.get(read);
+<         //    ++idx;
+<         //}
+---
+>         ReadDataHolder[] readDataArray = new ReadDataHolder[readListSize];
+>         int idx = 0;
+>         for (GATKRead read : processedReads) {
+>             readDataArray[idx] = new ReadDataHolder();
+>             readDataArray[idx].readBases = read.getBases();
+>             readDataArray[idx].readQuals = read.getBaseQualities();
+>             readDataArray[idx].insertionGOP = ReadUtils.getBaseInsertionQualities(read);
+>             readDataArray[idx].deletionGOP = ReadUtils.getBaseDeletionQualities(read);
+>             readDataArray[idx].overallGCP = gcp.get(read);
+>             ++idx;
+>         }
+156,237d147
+< 
+<         if (readListSize>=32768 && runningEngineType==Implementation.FPGA) {
+<             int readIdx = 0;
+<             int batchIdx = 0;
+<             int numBatch = (readListSize + NUM_READS_IN_BATCH - 1) / NUM_READS_IN_BATCH;
+<             int begIndexForResult = 0;
+<             int numOneBatchLikelihood = NUM_READS_IN_BATCH * numHaplotypes;
+<             double[] likelihoodArray;
+<             ReadDataHolder[] readDataArray;
+< 
+<             int numBatchRead;
+<             int numBatchLikelihood;
+<             if (batchIdx == numBatch-1) {
+<                 numBatchRead = readListSize;
+<                 numBatchLikelihood = readListSize * numHaplotypes;
+<             } else {
+<                 numBatchRead = NUM_READS_IN_BATCH;
+<                 numBatchLikelihood = numOneBatchLikelihood;
+<             }
+<             readDataArray = new ReadDataHolder[numBatchRead];
+<             likelihoodArray = new double[numBatchLikelihood];
+<             for (int i=0; i<numBatchRead; ++i) {
+<                 readDataArray[i] = new ReadDataHolder();
+<             }
+< 
+<             for (GATKRead read : processedReads) {
+<                 readDataArray[readIdx].readBases = read.getBases();
+<                 readDataArray[readIdx].readQuals = read.getBaseQualities();
+<                 readDataArray[readIdx].insertionGOP = ReadUtils.getBaseInsertionQualities(read);
+<                 readDataArray[readIdx].deletionGOP = ReadUtils.getBaseDeletionQualities(read);
+<                 readDataArray[readIdx].overallGCP = gcp.get(read);
+<                 ++readIdx;
+<                 if (readIdx == NUM_READS_IN_BATCH) {
+<                     readIdx = 0;
+<                     pairHmm.computeLikelihoods(readDataArray, mHaplotypeDataArray, likelihoodArray);
+<                     System.arraycopy(likelihoodArray, 0, mLogLikelihoodArray, begIndexForResult, numBatchLikelihood);
+<                     begIndexForResult += numBatchLikelihood;
+<                     ++batchIdx;
+< 
+<                     if (batchIdx == numBatch-1) {
+<                         numBatchRead = readListSize - batchIdx*NUM_READS_IN_BATCH;
+<                         if (numBatchRead <= 0) {
+<                             break;
+<                         }
+<                         numBatchLikelihood = numBatchRead * numHaplotypes;
+<                     } else {
+<                         numBatchRead = NUM_READS_IN_BATCH;
+<                         numBatchLikelihood = numOneBatchLikelihood;
+<                     }
+<                     readDataArray = new ReadDataHolder[numBatchRead];
+<                     for (int i=0; i<numBatchRead; ++i) {
+<                         readDataArray[i] = new ReadDataHolder();
+<                     }
+<                     likelihoodArray = new double[numBatchLikelihood];
+<                 }
+<             }
+<             if (readIdx != NUM_READS_IN_BATCH) {
+<                 pairHmm.computeLikelihoods(readDataArray, mHaplotypeDataArray, likelihoodArray);
+<                 System.arraycopy(likelihoodArray, 0, mLogLikelihoodArray, begIndexForResult, numBatchLikelihood);
+<             }
+<         } else {
+<             ReadDataHolder[] readDataArray = new ReadDataHolder[readListSize];
+<             int idx = 0;
+<             for (GATKRead read : processedReads) {
+<                 readDataArray[idx] = new ReadDataHolder();
+<                 readDataArray[idx].readBases = read.getBases();
+<                 readDataArray[idx].readQuals = read.getBaseQualities();
+<                 readDataArray[idx].insertionGOP = ReadUtils.getBaseInsertionQualities(read);
+<                 readDataArray[idx].deletionGOP = ReadUtils.getBaseDeletionQualities(read);
+<                 readDataArray[idx].overallGCP = gcp.get(read);
+<                 ++idx;
+<             }
+< 
+<             //for(reads)
+<             //   for(haplotypes)
+<             //       compute_full_prob()
+<             //long beg = System.nanoTime();
+<             pairHmm.computeLikelihoods(readDataArray, mHaplotypeDataArray, mLogLikelihoodArray);
+<             //System.out.printf ("\t\t\t\tvector computeReadLikelihoods cost: %fs\n", (double)(System.nanoTime()-beg) / 1000000000.0);
+< 
+<         }
+< 
+241c151
+<         //pairHmm.computeLikelihoods(readDataArray, mHaplotypeDataArray, mLogLikelihoodArray);
+---
+>         pairHmm.computeLikelihoods(readDataArray, mHaplotypeDataArray, mLogLikelihoodArray);
+diff -r /home/chenxi/sd/update/g4m2_update/src/main/java/org/broadinstitute/hellbender/utils/variant/writers/GVCFWriter.java /home/chenxi/study/latest_origin_gatk4/src/main/java/org/broadinstitute/hellbender/utils/variant/writers/GVCFWriter.java
+258,262d257
+<     public void dump(VariantContext vc) {
+< 
+<     }
+< 
+<     @Override

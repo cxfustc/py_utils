@@ -1,0 +1,264 @@
+src/main/java/org/broadinstitute/hellbender/engine/AssemblyRegionWalker.java
+src/main/java/org/broadinstitute/hellbender/engine/GATKTool.java
+src/main/java/org/broadinstitute/hellbender/engine/MultiIntervalLocalReadShard.java
+34d33
+<     private ReadsDataSource readsSource;
+35a35
+>     private ReadsDataSource readsSource;
+49c49
+<     public MultiIntervalLocalReadShard(final List<SimpleInterval> intervals, final int intervalPadding, final SAMSequenceDictionary sequenceDictionary) {
+---
+>     public MultiIntervalLocalReadShard(final List<SimpleInterval> intervals, final int intervalPadding, final ReadsDataSource readsSource) {
+50a51
+>         Utils.nonNull(readsSource);
+55c56
+<         this.intervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, 0, sequenceDictionary));
+---
+>         this.intervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, 0, readsSource.getSequenceDictionary()));
+59c60,62
+<         this.paddedIntervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, intervalPadding, sequenceDictionary));
+---
+>         this.paddedIntervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, intervalPadding, readsSource.getSequenceDictionary()));
+> 
+>         this.readsSource = readsSource;
+61c64,65
+<     public MultiIntervalLocalReadShard(final List<SimpleInterval> intervals, final int intervalPadding, final ReadsDataSource readsSource) {
+---
+> 
+>     public MultiIntervalLocalReadShard(final List<SimpleInterval> intervals, final int intervalPadding, final SAMSequenceDictionary sequenceDictionary) {
+63d66
+<         Utils.nonNull(readsSource);
+68c71
+<         this.intervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, 0, readsSource.getSequenceDictionary()));
+---
+>         this.intervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, 0, sequenceDictionary));
+72,74c75
+<         this.paddedIntervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, intervalPadding, readsSource.getSequenceDictionary()));
+< 
+<         this.readsSource = readsSource;
+---
+>         this.paddedIntervals = Collections.unmodifiableList(IntervalUtils.getIntervalsWithFlanks(intervals, intervalPadding, sequenceDictionary));
+src/main/java/org/broadinstitute/hellbender/Main.java
+288a289,294
+> 				System.out.println ();
+>         System.out.println ("|=----------------------------------------------------------------------------=|");
+>         System.out.println ("|=---------------=[This beta version will expire on Jan.1 2019]=--------------=|");
+>         System.out.println ("|=----------------------------------------------------------------------------=|");
+>         System.out.println ();
+> 
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/AssemblyResultSet.java
+4,5d3
+< import org.broadinstitute.hellbender.utils.read.GATKRead;
+< import org.broadinstitute.hellbender.utils.genotyper.ReadLikelihoods;
+13a12
+> import org.broadinstitute.hellbender.utils.genotyper.ReadLikelihoods;
+16a16
+> import org.broadinstitute.hellbender.utils.read.GATKRead;
+38,45d37
+<     public Map<String,List<GATKRead>> reads;
+<     public ReadLikelihoods<Haplotype> readLikelihoods;
+<     public List<VariantContext> givenAlleles;
+<     public SimpleInterval extendedSpan;
+<     public int tid;
+<     public int regionStart;
+<     public int regionEnd;
+< 
+58a51,58
+> 
+>     public Map<String,List<GATKRead>> reads;
+>     public ReadLikelihoods<Haplotype> readLikelihoods;
+>     public List<VariantContext> givenAlleles;
+>     public SimpleInterval extendedSpan;
+>     public int tid;
+>     public int regionStart;
+>     public int regionEnd;
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/PairHMMLikelihoodCalculationEngine.java
+3,4d2
+< import org.broadinstitute.hellbender.utils.pairhmm.LoglessPairHMM;
+< import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+16a15
+> import org.broadinstitute.hellbender.utils.pairhmm.LoglessPairHMM;
+17a17
+> import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+27d26
+< import java.util.stream.Collectors;
+132,140c131,141
+<         this (
+<                 constantGCP,
+<                 arguments,
+<                 hmmType,
+<                 log10globalReadMismappingRate,
+<                 pcrErrorModel,
+<                 baseQualityScoreThreshold,
+<                 false
+<         );    }
+---
+>        this (
+>                constantGCP,
+>                arguments,
+>                hmmType,
+>                log10globalReadMismappingRate,
+>                pcrErrorModel,
+>                baseQualityScoreThreshold,
+>                false
+>        );
+>     }
+> 
+158a160
+> 
+209c211
+<         result.normalizeLikelihoods(false, log10globalReadMismappingRate);
+---
+>         result.normalizeLikelihoods(log10globalReadMismappingRate);
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/PairHMMNativeArgumentCollection.java
+3d2
+< import org.broadinstitute.hellbender.tools.walkers.mutect.Mutect2Acc.Mutect2Acc;
+5a5,6
+> import org.broadinstitute.hellbender.engine.AssemblyRegionWalker;
+> import org.broadinstitute.hellbender.tools.walkers.mutect.Mutect2Acc.Mutect2Acc;
+11,13d11
+< 
+<     //@Argument(fullName = "native-pair-hmm-threads", doc="How many threads should a native pairHMM implementation use", optional = true)
+<     //private int pairHmmNativeThreads = 4;
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/RandomLikelihoodCalculationEngine.java
+3,4d2
+< import org.broadinstitute.hellbender.utils.pairhmm.PairHMM;
+< import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+7a6,7
+> import org.broadinstitute.hellbender.utils.pairhmm.PairHMM;
+> import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+47d46
+< 
+src/main/java/org/broadinstitute/hellbender/tools/walkers/haplotypecaller/ReadLikelihoodCalculationEngine.java
+3d2
+< import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+6a6
+> import org.broadinstitute.hellbender.utils.pairhmm.VectorLoglessPairHMM;
+src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect/M2ArgumentCollection.java
+8a9,10
+> import java.io.File;
+> 
+25a28
+>     public static final String INITIAL_PCR_ERROR_QUAL = "initial-pcr-qual";
+35c38
+< 
+---
+>     public static final String ARTIFACT_PRIOR_TABLE_NAME = "orientation-bias-artifact-priors";
+38c41
+<     public static final double DEFAULT_AF_FOR_TUMOR_NORMAL_CALLING = 1e-5;
+---
+>     public static final double DEFAULT_AF_FOR_TUMOR_NORMAL_CALLING = 1e-6;
+111a115,120
+>      * PCR error rate for overlapping fragments in isActive()
+>      */
+>     @Argument(fullName = INITIAL_PCR_ERROR_QUAL, optional = true, doc = "PCR error rate for overlapping fragments in isActive()")
+>     public int initialPCRErrorQual = 40;
+> 
+>     /**
+137a147,149
+> 
+>     @Argument(fullName = ARTIFACT_PRIOR_TABLE_NAME, optional = true, doc = "table of prior artifact probabilities for the read orientation filter model")
+>     public File artifactPriorTable = null;
+src/main/java/org/broadinstitute/hellbender/tools/walkers/mutect/Mutect2Engine.java
+141c141
+<      * @return the default set of variant annotations for use with HaplotypeCaller
+---
+>      * @return the default set of variant annotations for Mutect2
+262c262
+<         final List<Byte> tumorAltQuals = altQuals(tumorPileup, refBase);
+---
+>         final List<Byte> tumorAltQuals = altQuals(tumorPileup, refBase, MTAC.initialPCRErrorQual);
+269c269
+<             final List<Byte> normalAltQuals = altQuals(normalPileup, refBase);
+---
+>             final List<Byte> normalAltQuals = altQuals(normalPileup, refBase, MTAC.initialPCRErrorQual);
+300c300
+<     private static List<Byte> altQuals(final ReadPileup pileup, final byte refBase) {
+---
+>     public static List<Byte> altQuals(final ReadPileup pileup, final byte refBase, final int pcrErrorQual) {
+301a302
+>         final int position = pileup.getLocation().getStart();
+310c311,314
+<                 result.add(pe.getQual());
+---
+>                 final GATKRead read = pe.getRead();
+>                 final int mateStart = read.mateIsUnmapped() ? Integer.MAX_VALUE : read.getMateStart();
+>                 final boolean overlapsMate = mateStart <= position && position < mateStart + read.getLength();
+>                 result.add(overlapsMate ? (byte) FastMath.min(pe.getQual(), pcrErrorQual/2) : pe.getQual());
+318c322,323
+<     public static double lnLikelihoodRatio(final int refCount, final List<Byte> altQuals) {        final double beta = refCount + 1;
+---
+>     public static double lnLikelihoodRatio(final int refCount, final List<Byte> altQuals) {
+>         final double beta = refCount + 1;
+src/main/java/org/broadinstitute/hellbender/utils/GenotypeUtils.java
+src/main/java/org/broadinstitute/hellbender/utils/pairhmm/PairHMM.java
+3d2
+< import org.broadinstitute.hellbender.tools.walkers.mutect.Mutect2Acc.Mutect2Acc;
+9a9
+> import org.broadinstitute.hellbender.tools.walkers.mutect.Mutect2Acc.Mutect2Acc;
+27,28d26
+< 
+<     public VectorLoglessPairHMM.Implementation runningEngineType;
+32a31,32
+>     public VectorLoglessPairHMM.Implementation runningEngineType;
+> 
+85c85,87
+< 
+---
+>             // This try block is temporarily commented out becuase FPGA support is experimental for the time being. Once
+>             // FPGA support has matured/been properly tested, we can easily add it back the "fastest available" logic
+>             // by uncommenting this block
+95,106d96
+< 
+<             // This try block is temporarily commented out becuase FPGA support is experimental for the time being. Once
+<             // FPGA support has matured/been properly tested, we can easily add it back the "fastest available" logic
+<             // by uncommenting this block
+<             // try {
+<             //    final VectorLoglessPairHMM hmm = new VectorLoglessPairHMM(VectorLoglessPairHMM.Implementation.FPGA, args);
+<             //    logger.info("Using the FPGA-accelerated native PairHMM implementation");
+<             //    return hmm;
+<             //}
+<             //catch ( UserException.HardwareFeatureException e ) {
+<             //    logger.info("FPGA-accelerated native PairHMM implementation is not supported");
+<             //}
+src/main/java/org/broadinstitute/hellbender/utils/pairhmm/VectorLoglessPairHMM.java
+16a17
+> import scala.tools.cmd.gen.AnyVals;
+27,28d27
+<     private int NUM_READS_IN_BATCH = 16384;
+< 
+57a57,58
+>     private int NUM_READS_IN_BATCH = 16384;
+> 
+134a136
+> 
+136a139
+> 
+153,157d155
+<         //for(reads)
+<         //   for(haplotypes)
+<         //       compute_full_prob()
+<         //pairHmm.computeLikelihoods(readDataArray, mHaplotypeDataArray, mLogLikelihoodArray);
+< 
+239c237,242
+<       
+---
+> 
+>         //for(reads)
+>         //   for(haplotypes)
+>         //       compute_full_prob()
+>         //pairHmm.computeLikelihoods(readDataArray, mHaplotypeDataArray, mLogLikelihoodArray);
+> 
+src/main/java/org/broadinstitute/hellbender/utils/variant/writers/GVCFWriter.java
+110,114d109
+<     public void dump(VariantContext vc) {
+< 
+<     }
+< 
+<     @Override
+258a254,258
+> 
+>     }
+> 
+>     @Override
+>     public void dump(VariantContext vc) {
